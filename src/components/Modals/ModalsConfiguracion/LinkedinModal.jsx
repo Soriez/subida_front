@@ -1,28 +1,42 @@
-import React from 'react';
+import { useContext } from 'react';
 import { X, Linkedin } from 'lucide-react';
+import { AuthContext } from '../../../context/AuthContext';
+import { useNotification } from '../../../context/NotificationContext';
+import axios from 'axios';
 
-const LinkedinModal = ({ show, onClose, isConnected, baseUrl, token }) => {
+const LinkedinModal = ({ show, onClose }) => {
+    const { user, setUser, BASE_URL, token } = useContext(AuthContext);
+    const { showErrorModal, showSuccess } = useNotification();
+
     if (!show) return null;
 
-    const handleAction = () => {
-        console.log("LinkedinModal: handleAction triggered");
-        console.log("BaseURL:", baseUrl);
-        console.log("Token:", token);
+    const isConnected = !!user?.linkedin;
 
+    const handleAction = async () => {
         if (isConnected) {
             // Lógica para desconectar
-            alert("Desvinculando cuenta...");
-            onClose();
+            try {
+                // Eliminamos el link de LinkedIn y cambiamos el rol a 'cliente'
+                const response = await axios.put(
+                    `${BASE_URL}/api/users/${user._id}`,
+                    { role: "cliente", linkedin: "" },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                const updatedUser = response.data.user ? response.data.user : response.data;
+                setUser(updatedUser);
+                showSuccess("Cambiado a perfil Cliente. Tu configuración de freelancer se ha guardado.");
+                onClose();
+            } catch (error) {
+                console.error(error);
+                showErrorModal("Error al desconectar la cuenta.");
+            }
         } else {
             // Lógica para conectar (OAuth)
-            if (baseUrl && token) {
-                const redirectUrl = `${baseUrl}/api/auth/linkedin/connect?token=${token}`;
-                console.log("Redirigiendo a:", redirectUrl);
+            if (BASE_URL && token) {
+                const redirectUrl = `${BASE_URL}/api/auth/linkedin/connect?token=${token}`;
                 window.location.href = redirectUrl;
             } else {
-                console.error("Base URL o Token no definidos");
-                console.error("BaseURL:", baseUrl, "Token:", token);
-                alert("Error de configuración: No se puede conectar con el servidor.");
                 onClose();
             }
         }
@@ -43,7 +57,7 @@ const LinkedinModal = ({ show, onClose, isConnected, baseUrl, token }) => {
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
                     <p className="text-slate-600 text-sm leading-relaxed">
                         {isConnected
-                            ? "Tu cuenta de LinkedIn está actualmente vinculada. Si la desconectas, no podrás usarla para iniciar sesión ni mostrarla en tu perfil."
+                            ? "Tu cuenta de LinkedIn está actualmente vinculada. Si la desconectas, dejarás de ser freelancer, perderás tu perfil público y la posibilidad de brindar servicios (la configuración de tu cuenta freelancer será guardada)."
                             : "Conecta tu perfil profesional para aumentar la confianza con los clientes y mostrar tu experiencia verificada."}
                     </p>
                 </div>

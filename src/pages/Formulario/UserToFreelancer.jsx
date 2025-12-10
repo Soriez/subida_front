@@ -1,8 +1,8 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
 import { AuthContext } from '../../context/AuthContext';
-import { CheckCircle, Linkedin, Globe, ArrowRight } from 'lucide-react';
+import { CheckCircle, Linkedin, Globe, ArrowRight, Clock } from 'lucide-react';
 
 const UserToFreelancer = () => {
   const { token, user, setUser, BASE_URL } = useContext(AuthContext);
@@ -19,12 +19,34 @@ const UserToFreelancer = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
+  // Efecto para leer parámetros de la URL (retorno de LinkedIn)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+    const linkedinUrl = params.get('linkedin');
+
+    if (status === 'success') {
+      if (linkedinUrl) {
+        setFormData(prev => ({ ...prev, }));
+      }
+    }
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const ensureHttps = (url) => {
+    if (!url) return '';
+    let newUrl = url.trim();
+    if (!/^https?:\/\//i.test(newUrl)) {
+      newUrl = 'https://' + newUrl;
+    }
+    return newUrl;
   };
 
   const handleSubmit = async (e) => {
@@ -37,6 +59,9 @@ const UserToFreelancer = () => {
 
     setIsSubmitting(true);
 
+    const cleanLinkedin = ensureHttps(formData.linkedin);
+    const cleanPortfolio = ensureHttps(formData.portfolio);
+
     try {
       const config = {
         headers: {
@@ -45,10 +70,13 @@ const UserToFreelancer = () => {
         }
       };
 
+      // Se envía role: 'pendiente' en lugar de 'freelancer'
       const { data } = await axios.put(`${BASE_URL}/api/users/hacerse-freelancer`, {
-        role: 'freelancer',
-        linkedin: formData.linkedin,
-        portfolio: formData.portfolio,
+        role: 'pendiente',
+        estado: 'pendiente', // Enviamos explícitamente el estado pendiente
+        motivoRechazo: '',
+        linkedin: cleanLinkedin,
+        portfolio: cleanPortfolio,
         descripcion: formData.descripcion
       }, config);
 
@@ -60,7 +88,6 @@ const UserToFreelancer = () => {
       setSubmitted(true);
 
     } catch (err) {
-      console.error('Error al actualizar perfil:', err);
       const errorMsg = err.response && err.response.data.message
         ? err.response.data.message
         : 'Error de conexión con el servidor.';
@@ -92,10 +119,9 @@ const UserToFreelancer = () => {
         const { data } = await axios.get(`${BASE_URL}/api/users/${payload.id}`, config);
         setUser(data);
 
-        // Ahora navegamos al dashboard con la información actualizada
+        // Ahora navegamos al dashboard
         navigate('/dashboard');
       } catch (error) {
-        console.error('Error al recargar usuario:', error);
         // Incluso si falla, navegamos al dashboard
         navigate('/dashboard');
       }
@@ -105,18 +131,21 @@ const UserToFreelancer = () => {
       <div className="min-h-screen bg-[#1a233a] font-sans flex flex-col">
         <div className="grow flex items-center justify-center p-6">
           <div className="bg-[#1f2937] p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-700">
-            <div className="h-20 w-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle size={40} className="text-green-500" />
+            <div className="h-20 w-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Clock size={40} className="text-blue-500" />
             </div>
-            <h2 className="text-3xl font-bold text-white mb-4">¡Felicidades, ya eres Freelancer!</h2>
-            <p className="text-gray-300 mb-8">
-              Tu perfil ha sido actualizado.
+            <h2 className="text-3xl font-bold text-white mb-4">Solicitud Enviada</h2>
+            <p className="text-gray-300 mb-6">
+              Tu solicitud para ser Freelancer está <span className="text-blue-400 font-semibold">pendiente de revisión</span>.
+            </p>
+            <p className="text-gray-400 text-sm mb-8">
+              Nuestro staff validará tus datos y experiencia. Te notificaremos pronto sobre el estado de tu cuenta.
             </p>
             <button
               onClick={handleGoToDashboard}
               className="w-full py-3 px-4 bg-[#2563EB] hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
             >
-              Ir a mi Dashboard
+              Volver al Dashboard
             </button>
           </div>
         </div>
@@ -145,6 +174,14 @@ const UserToFreelancer = () => {
               </div>
             )}
 
+            {/* Mensaje de Vinculación Exitosa */}
+            {new URLSearchParams(window.location.search).get('status') === 'success' && (
+              <div className="bg-green-900/30 text-green-400 border border-green-500/50 rounded-lg p-3 mb-6 max-w-lg mx-auto flex items-center justify-center gap-2">
+                <CheckCircle size={20} />
+                <span>¡Cuenta de LinkedIn vinculada correctamente!</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto text-left">
 
               <div>
@@ -154,16 +191,20 @@ const UserToFreelancer = () => {
                 <div className="relative group">
                   <Linkedin className="absolute left-3 top-3 text-gray-500 group-focus-within:text-[#0077b5] transition-colors" size={20} />
                   <input
-                    type="url"
+                    type="text"
                     id="linkedin"
                     name="linkedin"
                     required
-                    placeholder="https://linkedin.com/in/tu-perfil"
+                    placeholder="linkedin.com/in/tu-perfil"
                     value={formData.linkedin}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-4 py-3 bg-[#111827] border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-[#2563EB] focus:border-transparent outline-none transition-all"
+                    className={`block w-full pl-10 pr-4 py-3 bg-[#111827] border rounded-lg text-white placeholder-gray-500 focus:ring-2 outline-none transition-all ${new URLSearchParams(window.location.search).get('status') === 'success' && formData.linkedin ? 'border-green-500 focus:ring-green-500' : 'border-gray-600 focus:ring-[#2563EB] focus:border-transparent'}`}
                   />
+                  {new URLSearchParams(window.location.search).get('status') === 'success' && formData.linkedin && (
+                    <CheckCircle className="absolute right-3 top-3 text-green-500" size={20} />
+                  )}
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Este es el link que se guardará en tu perfil.</p>
               </div>
 
               <div>
@@ -173,11 +214,11 @@ const UserToFreelancer = () => {
                 <div className="relative group">
                   <Globe className="absolute left-3 top-3 text-gray-500 group-focus-within:text-green-500 transition-colors" size={20} />
                   <input
-                    type="url"
+                    type="text"
                     id="portfolio"
                     name="portfolio"
                     required
-                    placeholder="https://miportfolio.com"
+                    placeholder="miportfolio.com"
                     value={formData.portfolio}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-4 py-3 bg-[#111827] border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-[#2563EB] focus:border-transparent outline-none transition-all"

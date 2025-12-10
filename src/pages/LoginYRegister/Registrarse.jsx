@@ -89,18 +89,17 @@ const Registrar = () => {
                 apellido,
                 email,
                 password,
-                role: 'cliente' 
+                role: 'cliente'
             });
 
             // 3. Éxito
             showCustomMessage('¡Cuenta creada con éxito! Redirigiendo...', false);
-            
+
             setTimeout(() => {
                 navigate('/iniciar-sesion');
             }, 2000);
 
         } catch (error) {
-            console.error('Error de registro:', error);
             // Capturamos el mensaje exacto que envía tu backend (ej: "El email ya está en uso")
             const errorMsg = error.response?.data?.message || 'Error al conectar con el servidor.';
             showCustomMessage(errorMsg);
@@ -129,7 +128,7 @@ const Registrar = () => {
 
                         {/* Header y Títulos */}
                         <div className="text-center mb-4">
-                            <img src="imgs/logo_new.png" alt=""
+                            <img src="imgs/logo.png" alt=""
                                 className="inline-flex items-center justify-center w-[60px] h-[60px]  shadow-lg shadow-blue-600/50 mb-3 bg-white rounded-full"
                             />
                             <h1 className="text-[28px] font-bold text-white mb-1">ConectAR-Dev</h1>

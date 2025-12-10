@@ -1,5 +1,5 @@
 
-import { useRoutes, Navigate, Outlet } from 'react-router'
+import { useRoutes, Navigate } from 'react-router'
 
 // --- Imports de Páginas ---
 import Inicio from '../pages/ContenidoPrincipal/Inicio'
@@ -13,7 +13,6 @@ import SobreNosotros from '../pages/Footer/SobreNosotros'
 import TerminosServicios from '../pages/Footer/TerminosServicios'
 import TerminosPrivacidad from '../pages/Footer/TerminosPrivacidad'
 import PoliticaCookies from '../pages/Footer/PoliticaCookies'
-import RecuperarCuenta from '../pages/LoginYRegister/RecuperarCuenta'
 import CambiarEmail from '../components/CambiarDatos/CambiarEmail'
 import CambiarPassword from '../components/CambiarDatos/CambiarPassword'
 
@@ -25,6 +24,8 @@ import ConfiguracionDashboard from '../components/Dashboard/ConfiguracionDashboa
 import OpinionesDashboard from '../components/Dashboard/OpinionesDashboard'
 import UserToFreelancer from '../pages/Formulario/UserToFreelancer'
 import FreeToPremium from '../pages/Formulario/FreeToPremium'
+import AdminDashboard from '../pages/Dashboard/AdminDashboard'
+import AdminStats from '../components/Dashboard/AdminStats'
 
 // --- Imports de Guards ---
 import { OnlyNonFreelancers, OnlyStandardFreelancers, RequireFreelancer } from './RutasPrivadas';
@@ -49,8 +50,7 @@ const Rutas = () => {
         { path: '/politicas-de-privacidad', element: <TerminosPrivacidad /> },
         { path: '/politicas-de-cookies', element: <PoliticaCookies /> },
 
-        // --- RECUPERACIÓN DE CUENTA ---
-        { path: '/recuperar-cuenta', element: <RecuperarCuenta /> },
+        // --- ACTUALIZACIÓN DE CUENTA ---
         { path: '/cambiar-email', element: <CambiarEmail /> },
         { path: '/cambiar-password', element: <CambiarPassword /> },
 
@@ -91,6 +91,11 @@ const Rutas = () => {
                 }
             ]
         },
+
+        // --- ADMIN DASHBOARD ---
+        { path: '/admin', element: <AdminStats /> },
+        { path: '/admin/estadisticas', element: <Navigate to="/admin" replace /> }, // Redirección de compatibilidad
+        { path: '/admin/perfiles', element: <AdminDashboard /> },
 
         // --- 404 NO ENCONTRADO ---
         { path: '*', element: <NoEncontrado /> },

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo, useEffect } from "react";
+import { useState, useContext, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   Star,
@@ -7,12 +7,15 @@ import {
   Code2,
   User as UserIcon,
   Crown,
-  Search,
   Lock,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
+import { useNotification } from "../../context/NotificationContext";
 import axios from "axios";
 import LinkedinModal from "../../components/Modals/ModalsConfiguracion/LinkedinModal"; // Importar Modal
+import ConfirmationModal from "../../components/Modals/ConfirmationModal";
 
 // Lista preestablecida de tecnologías (si fallara la carga del backend)
 const FALLBACK_TECHS = ["React", "NodeJS", "MongoDB", "JavaScript"];
@@ -49,6 +52,7 @@ const PerfilDashboard = () => {
 
   // Hook 1: Obtener el contexto de autenticación
   const { user, isLoading, BASE_URL, setUser, token } = useContext(AuthContext); // Agregamos token
+  const { showErrorModal, showSuccess } = useNotification();
   const navigate = useNavigate();
 
   // Hook 2: Lista de tecnologías disponibles (del backend)
@@ -66,6 +70,29 @@ const PerfilDashboard = () => {
 
   // Hook 6: Estado para el modal de LinkedIn
   const [showLinkedinModal, setShowLinkedinModal] = useState(false);
+  const [showCancelRequestModal, setShowCancelRequestModal] = useState(false);
+  const [isReapplyModalOpen, setIsReapplyModalOpen] = useState(false); // Hook 7: Estado para el modal de reenvío
+
+  // 4. Cancelar Solicitud de Freelancer
+  const handleCancelRequest = async () => {
+    try {
+      const { data } = await axios.put(`${BASE_URL}/api/users/cancelar-solicitud/${user._id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log("Respuesta Cancelar:", data);
+
+      // Asegurar que usamos el objeto de usuario correcto
+      const updatedUser = data.user || data;
+      console.log("Usuario Actualizado:", updatedUser);
+
+      setUser(updatedUser);
+      showSuccess("Solicitud cancelada correctamente");
+      setShowCancelRequestModal(false);
+    } catch (error) {
+      console.error(error);
+      showErrorModal("Error al cancelar la solicitud");
+    }
+  };
 
   // 2. EFECTO: Sincronizar 'technologies' con 'user.skills' cuando el usuario carga
   useEffect(() => {
@@ -87,7 +114,6 @@ const PerfilDashboard = () => {
         );
         setAvailableTechs(response.data);
       } catch (error) {
-        console.error("Error al cargar tecnologías disponibles:", error);
         setAvailableTechs(FALLBACK_TECHS);
       }
     };
@@ -123,7 +149,7 @@ const PerfilDashboard = () => {
   }
 
   // Variables de conveniencia (AHORA es seguro acceder a user.*)
-  const isFreelancer = user.role === 'freelancer';
+  const isFreelancer = user.role === 'freelancer' || user.role === 'premium';
   const isPremium = user.plan === 'premium';
   const handleSelectTech = (tech) => {
     if (technologies.length < 5) {
@@ -155,7 +181,7 @@ const PerfilDashboard = () => {
     if (technologies.length > 5) {
       // En un caso real, esto no debería pasar por la validación del input,
       // pero es una seguridad extra.
-      return alert("Error: No puedes tener más de 5 habilidades.");
+      return showErrorModal("Error: No puedes tener más de 5 habilidades.");
     }
 
     try {
@@ -173,18 +199,16 @@ const PerfilDashboard = () => {
       // actualizamos el usuario en el contexto.
       setUser(response.data);
 
-      alert("Habilidades actualizadas con éxito."); // Usa una librería de notificaciones real
+      showSuccess("Habilidades actualizadas con éxito.");
     } catch (error) {
       // 5. Manejo de Errores
-      console.error("Error completo al guardar skills:", error);
-
       // El error de validación del límite de 5 viene con status 400.
       const errorMessage =
         error.response?.data?.message ||
         "Error desconocido al intentar guardar las habilidades.";
 
       // Este mensaje te dirá si el problema es de validación (Mongoose) o interno.
-      alert(`Fallo al guardar: ${errorMessage}`);
+      showErrorModal(`Fallo al guardar: ${errorMessage}`);
     }
   };
   // --- Handler para hacerse Premium ---
@@ -192,8 +216,25 @@ const PerfilDashboard = () => {
     navigate('/hacerse-premium');
   };
 
+  const handleDisconnectLinkedin = async () => {
+    try {
+      // No eliminamos el link de LinkedIn, solo cambiamos el rol a 'cliente'
+      const response = await axios.put(
+        `${BASE_URL}/api/users/${user._id}`,
+        { role: "cliente" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const updatedUser = response.data.user ? response.data.user : response.data;
+      setUser(updatedUser);
+
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const renderStars = () => {
-    const rating = user.rating || 5;
+    const rating = user.rating || 1;
     return [...Array(5)].map((_, index) => (
       <Star
         key={index}
@@ -204,17 +245,48 @@ const PerfilDashboard = () => {
     ));
   };
 
+
+
+  const handleReapply = () => {
+    navigate('/hacerse-freelancer');
+    setIsReapplyModalOpen(false);
+  };
+
   return (
-    <div className="animate-fade-in-up">
+    <div className="animate-fade-in-up relative">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Mi Perfil</h1>
-        {/* {isFreelancer && (
-          <button className="text-sm text-blue-600 hover:underline font-medium">
-            Editar Perfil Público
-          </button>
-        )} */}
       </div>
 
+      {/* MODAL DE CONFIRMACIÓN DE REENVÍO */}
+      {isReapplyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 animate-scale-in">
+            <h3 className="text-xl font-bold text-slate-800 mb-3">Corregir Solicitud</h3>
+            <p className="text-slate-600 mb-6">
+              Para reenviar tu solicitud, necesitas revisar y corregir los datos ingresados en el formulario.
+              <br /><br />
+              <span className="text-sm text-slate-500 italic">Serás redirigido al formulario de registro de freelancer.</span>
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsReapplyModalOpen(false)}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleReapply}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition"
+              >
+                Ir al Formulario
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RESTO DEL CONTENIDO */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* COLUMNA PRINCIPAL */}
         <div className="lg:col-span-2 space-y-6">
@@ -268,7 +340,7 @@ const PerfilDashboard = () => {
                     title="Rating promedio"
                   >
                     <span className="font-bold text-slate-700 text-lg">
-                      5.0
+                      {Number(user.rating || 1).toFixed(1)}
                     </span>
                     <div className="flex gap-0.5">{renderStars()}</div>
                   </div>
@@ -281,6 +353,48 @@ const PerfilDashboard = () => {
               )}
             </div>
           </div>
+
+          {/* AVISO DE RECHAZO */}
+          {user.estado === 'rechazado' && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+              <div className="flex gap-4">
+                <div className="p-3 bg-red-100 rounded-full h-fit text-red-600">
+                  <AlertTriangle size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-red-700 text-lg mb-1">Solicitud Rechazada</h3>
+                  <p className="text-red-600 text-sm mb-2">
+                    Tu solicitud para ser freelancer no fue aprobada.
+                  </p>
+                  {user.motivoRechazo && (
+                    <p className="text-red-800 text-sm italic bg-red-100/50 p-2 rounded-lg border border-red-100">
+                      "Motivo: {user.motivoRechazo}"
+                    </p>
+                  )}
+                  <p className="text-slate-600 text-sm mt-2">
+                    Por favor, completa correctamente todos tus datos y vuelve a intentarlo.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                {/* Botón para abrir modal de reenvío */}
+                <button
+                  onClick={() => setIsReapplyModalOpen(true)}
+                  className="whitespace-nowrap px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-sm transition-colors text-sm"
+                >
+                  Revisar Solicitud
+                </button>
+                {/* Link auxiliar para ir contactate con nosotros */}
+                <button
+                  onClick={() => navigate('/contacto')}
+                  className="text-xs text-red-600 hover:underline"
+                >
+                  Contactate con nosotros
+                </button>
+              </div>
+            </div>
+          )}
+
 
           {/* 2. Sección de Descripción y Links (Solo Freelancers) */}
           {isFreelancer && (
@@ -405,18 +519,39 @@ const PerfilDashboard = () => {
         {/* COLUMNA DERECHA: Stats o CTA */}
         <div className="space-y-6">
           {!isFreelancer && (
-            <div className="bg-linear-to-br from-blue-600 to-indigo-700 rounded-xl p-6 text-white shadow-lg">
-              <h3 className="font-bold text-xl mb-2">¿Eres Desarrollador?</h3>
-              <p className="text-blue-100 text-sm mb-4">
-                Convierte tu cuenta a perfil Freelancer y comienza a ofrecer tus
-                servicios hoy mismo.
-              </p>
-              <button
-                onClick={() => setShowLinkedinModal(true)}
-                className="w-full bg-white text-blue-700 font-bold py-2 rounded-lg hover:bg-blue-50 transition shadow-sm"
-              >
-                Convertirme en Freelancer
-              </button>
+            <div className={`bg-linear-to-br transition-all duration-300 rounded-xl p-6 text-white shadow-lg ${user.role === 'pendiente' ? 'from-orange-500 to-orange-600' : 'from-blue-600 to-indigo-700'
+              }`}>
+              {user.role === 'pendiente' ? (
+                <>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock size={24} className="text-white animate-pulse" />
+                    <h3 className="font-bold text-xl">Solicitud Pendiente</h3>
+                  </div>
+                  <p className="text-orange-100 text-sm mb-4">
+                    Estamos revisando tu perfil. Pronto recibirás una notificación sobre el estado de tu solicitud.
+                  </p>
+                  <button
+                    onClick={() => setShowCancelRequestModal(true)}
+                    className="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-lg transition shadow-sm border border-white/40"
+                  >
+                    Cancelar Petición
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-bold text-xl mb-2">¿Eres Desarrollador?</h3>
+                  <p className="text-blue-100 text-sm mb-4">
+                    Convierte tu cuenta a perfil Freelancer y comienza a ofrecer tus
+                    servicios hoy mismo.
+                  </p>
+                  <button
+                    onClick={() => setShowLinkedinModal(true)}
+                    className="w-full bg-white text-blue-700 font-bold py-2 rounded-lg hover:bg-blue-50 transition shadow-sm"
+                  >
+                    Convertirme en Freelancer
+                  </button>
+                </>
+              )}
             </div>
           )}
           {/* Stats simples */}
@@ -496,6 +631,18 @@ const PerfilDashboard = () => {
         isConnected={!!user.linkedin}
         baseUrl={BASE_URL}
         token={token}
+        onDisconnect={handleDisconnectLinkedin}
+      />
+
+      {/* Modal de confirmación para cancelar solicitud */}
+      <ConfirmationModal
+        isOpen={showCancelRequestModal}
+        onClose={() => setShowCancelRequestModal(false)}
+        onConfirm={handleCancelRequest}
+        title="¿Cancelar solicitud de Freelancer?"
+        message="Si cancelas la solicitud, tu perfil volverá a ser de cliente y se borrarán los datos de freelancer ingresados. Podrás volver a enviar la solicitud cuando quieras."
+        confirmText="Sí, cancelar solicitud"
+        cancelText="No, mantener"
       />
     </div>
   );
