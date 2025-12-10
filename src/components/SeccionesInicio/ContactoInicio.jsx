@@ -31,7 +31,7 @@ const ContactoInicio = () => {
                 {/* 2. Contenedor de la Cuadrícula de Pasos */}
                 <div className='relative max-w-7xl mx-auto mb-20'>
                     {/* Mapeo de los pasos */}
-                    <ul className={`
+                    <div className={`
                         grid 
                         gap-8 sm:gap-12 
                         grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 
@@ -39,11 +39,11 @@ const ContactoInicio = () => {
                     `}>
                         {pasosData.map((paso) => (
                             // Nota: Asegúrate de que PasoCard tenga estilos transparentes o dark para integrarse bien
-                            <div key={paso.id} className="transform hover:-translate-y-2 transition-transform duration-300">
+                            <div key={paso.id} className="transform hover:-translate-y-2 transition-transform duration-300 h-full">
                                 <PasoCard paso={paso} />
                             </div>
                         ))}
-                    </ul>
+                    </div>
                 </div>
 
                 {/* 3. Card de Beneficios/Estadísticas (Rediseñada Elegantemente) */}

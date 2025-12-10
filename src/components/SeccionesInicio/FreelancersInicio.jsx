@@ -37,8 +37,14 @@ const FreelancersInicio = ({ data, title, subtitle, showPremiumBadge = true }) =
         const fetchPremium = async () => {
             try {
                 const BASE_URL = import.meta.env.VITE_BACKEND_API_URL;
-                const res = await axios.get(`${BASE_URL}/api/users/freelancers/premium`);
-                setFreelancers(res.data);
+                const res = await axios.get(`${BASE_URL}/api/users/freelancers`);
+
+                // Filtramos localmente para asegurar consistencia con la página de Freelancers
+                // ya que el endpoint /premium parece no devolver los mismos resultados en prod.
+                const premiumData = res.data.filter(user => user.plan === 'premium');
+                premiumData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+                setFreelancers(premiumData);
                 setLoading(false);
             } catch (error) {
                 setLoading(false);
@@ -46,6 +52,8 @@ const FreelancersInicio = ({ data, title, subtitle, showPremiumBadge = true }) =
         };
         fetchPremium();
     }, [data]);
+
+    // console.log("Estado freelancers:", freelancers);
 
     const totalPages = Math.ceil(freelancers.length / itemsPerPage);
 
@@ -74,7 +82,7 @@ const FreelancersInicio = ({ data, title, subtitle, showPremiumBadge = true }) =
     if (loading) return null;
     if (freelancers.length === 0) return null;
     return (
-        <section className="bg-slate-900 py-12 border-b border-slate-800 overflow-hidden relative">
+        <section className="bg-slate-900 py-12 overflow-hidden relative">
             {/* Fondo: Gradiente dorado sutil y profesional */}
             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-500/50 via-yellow-400 to-amber-500/50 opacity-60 shadow-[0_0_15px_rgba(251,191,36,0.3)]"></div>
 
@@ -82,8 +90,8 @@ const FreelancersInicio = ({ data, title, subtitle, showPremiumBadge = true }) =
 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-10">
+                    {/* Icono Crown: Fondo oscuro con borde ámbar */}
                     <div className="flex items-center gap-4">
-                        {/* Icono Crown: Fondo oscuro con borde ámbar */}
                         <div className="p-3 bg-slate-800 rounded-xl text-amber-400 shadow-lg shadow-amber-900/20 border border-slate-700 ring-1 ring-amber-500/20">
                             <Crown size={28} strokeWidth={2.5} />
                         </div>
@@ -127,7 +135,7 @@ const FreelancersInicio = ({ data, title, subtitle, showPremiumBadge = true }) =
                         {freelancers.map((user) => (
                             <div
                                 key={user._id}
-                                className="w-full md:w-1/2 lg:w-1/3 shrink-0 px-3"
+                                className="w-full md:w-1/2 lg:w-1/3 shrink-0 px-3 mt-10"
                             >
                                 {/* Card: Fondo oscuro (slate-800) */}
                                 <div

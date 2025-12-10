@@ -21,7 +21,7 @@ const Inicio = () => {
   }, []);
   return (
     // Opcion gradiente completo
-    <div className='bg-white min-h-screen flex flex-col'>
+    <div className='bg-slate-900 min-h-screen flex flex-col'>
       {/* Header ocupa la parte superior (Hero) */}
       <HeaderInicio />
       <main>

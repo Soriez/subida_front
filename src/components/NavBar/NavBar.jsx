@@ -32,7 +32,7 @@ const NavBar = () => {
                     >
                         <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center overflow-hidden bg-transparent">
                             <img
-                                src="/public/imgs/logo.png"
+                                src="/imgs/logo.png"
                                 alt="Logo"
                                 className="w-full h-full object-contain"
                             />
