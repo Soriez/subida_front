@@ -53,3 +53,18 @@ export const RequireFreelancer = () => {
   }
   return <Outlet />;
 };
+
+// --- BLOQUEO 4: Solo Admin (Para rutas de Admin) ---
+export const RequireAdmin = () => {
+  const { user, isLoading } = useContext(AuthContext);
+
+  if (isLoading) return <div>Cargando...</div>;
+
+  if (!user) return <Navigate to="/iniciar-sesion" replace />;
+
+  // Si no es admin, al inicio
+  if (user.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+  return <Outlet />;
+};

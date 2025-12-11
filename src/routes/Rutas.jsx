@@ -28,7 +28,7 @@ import AdminDashboard from '../pages/Dashboard/AdminDashboard'
 import AdminStats from '../components/Dashboard/AdminStats'
 
 // --- Imports de Guards ---
-import { OnlyNonFreelancers, OnlyStandardFreelancers, RequireFreelancer } from './RutasPrivadas';
+import { OnlyNonFreelancers, OnlyStandardFreelancers, RequireFreelancer, RequireAdmin } from './RutasPrivadas';
 
 // ==========================================
 // DEFINICIÓN DE RUTAS
@@ -93,9 +93,14 @@ const Rutas = () => {
         },
 
         // --- ADMIN DASHBOARD ---
-        { path: '/admin', element: <AdminStats /> },
-        { path: '/admin/estadisticas', element: <Navigate to="/admin" replace /> }, // Redirección de compatibilidad
-        { path: '/admin/perfiles', element: <AdminDashboard /> },
+        {
+            element: <RequireAdmin />,
+            children: [
+                { path: '/admin', element: <AdminStats /> },
+                { path: '/admin/estadisticas', element: <Navigate to="/admin" replace /> }, // Redirección de compatibilidad
+                { path: '/admin/perfiles', element: <AdminDashboard /> },
+            ]
+        },
 
         // --- 404 NO ENCONTRADO ---
         { path: '*', element: <NoEncontrado /> },
