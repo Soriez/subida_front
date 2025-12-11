@@ -172,21 +172,6 @@ const ConfiguracionDashboard = () => {
           </div>
         </div>
       )}
-      {/* 4. SECCIÓN CUENTAS CONECTADAS (Opcional/Para todos) */}
-      {!isFreelancer && (
-        <div className="mb-8">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1">Integraciones</h3>
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <ConfigItem
-              title="LinkedIn"
-              subtitle={user.linkedin ? "Cuenta vinculada" : "No conectado"}
-              icon={<Linkedin size={18} />}
-              actionLabel={user.linkedin ? "Desconectar" : "Conectar"}
-              onClick={() => setShowLinkedinModal(true)}
-            />
-          </div>
-        </div>
-      )}
       {/* 5. SECCIÓN OPORTUNIDADES (Si NO es freelancer) */}
       {!isFreelancer && (
         <div className="mb-8">
