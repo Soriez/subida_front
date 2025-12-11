@@ -1,7 +1,7 @@
 import { Heart, Shield, Users, Lightbulb } from 'lucide-react';
 
-export const sobre_nosotros_data ={
-     valoresData : [
+export const sobre_nosotros_data = {
+  valoresData: [
     {
       id: 1,
       icon: Heart,
@@ -40,30 +40,34 @@ export const sobre_nosotros_data ={
    * Datos del equipo
    * Cada miembro tiene nombre, rol e imagen
    */
- equipoData : [
+  equipoData: [
     {
       id: 1,
       nombre: 'Jezabel Coronas',
       rol: 'Analista Funcional',
-      imagen: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'
+      imagen: '/imgs/sobre-nosotros/Jezabel_Coronas.jpeg',
+      imagePosition: '50% 25%'
     },
     {
       id: 2,
       nombre: 'Santiago Oriez',
       rol: 'QA/Tester',
-      imagen: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop'
+      imagen: '/imgs/sobre-nosotros/Santiago_Oriez.jpg',
+      imagePosition: '50% 0%'
     },
     {
       id: 3,
       nombre: 'Priscila Redondo',
-      rol: 'UX/UI Designer',
-      imagen: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop'
+      rol: 'Scrum Master',
+      imagen: '/imgs/sobre-nosotros/Priscila_Redondo.jpeg',
+      imagePosition: '50% 55%'
     },
     {
       id: 4,
       nombre: 'Leonel Rasjido',
       rol: 'Desarrollador',
-      imagen: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop'
+      imagen: '/imgs/sobre-nosotros/Leonel_Rasjido.jpeg',
+      imagePosition: '50% 35%'
     }
   ]
 }

@@ -17,17 +17,17 @@ export const FOOTER_DATA = {
             { icono: 'twitter', url: 'https://twitter.com/' },
         ],
     },
-    
+
     // Columna 2: Servicios
     servicios: {
         titulo: "Servicios",
         enlaces: [
-            { id: 'dev', texto: "Desarrollo Web", url: "/servicios/desarrollo-web" },
-            { id: 'apps', texto: "Apps Móviles", url: "/servicios/apps-moviles" },
-            { id: 'db', texto: "Bases de Datos", url: "/servicios/bases-de-datos" },
-            { id: 'ia', texto: "Inteligencia Artificial", url: "/servicios/ia" },
-            { id: 'cloud', texto: "DevOps & Cloud", url: "/servicios/devops-cloud" },
-            { id: 'mentor', texto: "Mentorías", url: "/servicios/mentorias" },
+            { id: 'dev', texto: "Desarrollo Web", url: "/freelancers?categoria=Desarrollo%20Web" },
+            { id: 'apps', texto: "Apps Móviles", url: "/freelancers?categoria=Desarrollo%20Mobile" },
+            { id: 'db', texto: "Bases de Datos", url: "/freelancers?categoria=Bases%20de%20Datos" },
+            { id: 'ia', texto: "Inteligencia Artificial", url: "/freelancers?categoria=Inteligencia%20Artificial" },
+            { id: 'cloud', texto: "DevOps & Cloud", url: "/freelancers?categoria=DevOps%20%26%20Cloud" },
+            { id: 'mentor', texto: "Mentorías", url: "/freelancers?categoria=Mentorías" },
         ]
     },
 
@@ -50,8 +50,8 @@ export const FOOTER_DATA = {
         // El bloque de "Orgullo Argentino" (puede ser un componente separado)
         claim: "Orgullo Argentino"
     },
-    legales:{
-        enlaces:[
+    legales: {
+        enlaces: [
             { id: 'terminos de servicio', texto: "Términos de servicio", url: "/terminos-y-servicios" },
             { id: 'politica de privacidad', texto: "Política de Privacidad", url: "/politicas-de-privacidad" },
             { id: 'cookies', texto: "Cookies", url: "/politicas-de-cookies" }

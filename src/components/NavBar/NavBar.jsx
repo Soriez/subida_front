@@ -97,7 +97,7 @@ const NavBar = () => {
                     ) : (
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full border border-blue-500 overflow-hidden">
-                                <img src="/public/imgs/logo.jpeg" alt="Logo" className="w-full h-full object-cover" />
+                                <img src="/imgs/logo.jpeg" alt="Logo" className="w-full h-full object-cover" />
                             </div>
                             <span className="font-bold text-xl text-white tracking-wide">ConectAR<span className="text-blue-500">Dev</span></span>
                         </div>

@@ -132,6 +132,7 @@ const SobreNosotros = () => {
                   src={miembro.imagen}
                   alt={miembro.nombre}
                   className="w-full h-full object-cover transition-transform duration-700"
+                  style={{ objectPosition: miembro.imagePosition || 'top' }}
                 />
 
                 {/* Overlay Gradiente */}
